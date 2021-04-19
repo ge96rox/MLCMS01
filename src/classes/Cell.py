@@ -53,7 +53,7 @@ class Cell:
 
     def find_position(self):
         # return the position of cell
-        return (self.current_row, self.current_col)
+        return self.current_row, self.current_col
 
     def set_state(self, state):
         self.current_state = state
