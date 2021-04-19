@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 import json as js
 
-from Cell import *
-from Util import *
+from classes.Cell import *
+from classes.Util import *
 
 
 class GridWindow:

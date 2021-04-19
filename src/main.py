@@ -1,6 +1,6 @@
 # Created by longtaoliu at 19.04.21
 
-from class.Grid import *
+from classes.Grid import *
 def runApp(r,c,w,h):
     root = Tk()
     myapp = GridWindow(root,r,c,w,h)
