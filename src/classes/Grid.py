@@ -1,11 +1,11 @@
 # Created by longtaoliu at 17.04.21
-import sys
+
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
-import gc
+
 import json as js
-from collections import defaultdict
+
 import random
 
 from classes.Cell import *
@@ -13,6 +13,8 @@ from classes.Util import *
 
 import matplotlib
 import matplotlib.pyplot as plt
+
+from util.helper import list_duplicates, indices_matches
 
 matplotlib.use('TkAgg')
 
@@ -49,7 +51,7 @@ class GridWindow:
         self.myFrame = Frame(parent)
         self.myFrame.pack()
         self.myCanvas = None
-
+        self.mark_path = True
         self.input_file = None
 
         self.rows = rows
@@ -59,10 +61,13 @@ class GridWindow:
 
         self.grid = {}  # canvas grid image
         self.cells = {}  # cavas cells
+
         self.peds = [] # pedestrians
         self.reach_goal = 0 # #of peds reached goal
+
         self.utilMap = {}
-     
+        self.o_cells = []
+        self.t_cells = []
 
         self.b_next = Button(self.myFrame, text='next timestep', command=self.update_cells)
         self.b_next.pack(side=TOP, padx=2, pady=2)
@@ -140,96 +145,83 @@ class GridWindow:
     def draw_cells(self):
         
         # draw the cells (Pedestrians, Obstacle, Target) on the grid
+
         for column in range(self.rows):
             for row in range(self.cols):
-                if(self.cells[row,column].get_state()==1):
+                if self.cells[row, column].get_state() == Cell.PEDESTRIAN:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='yellow')
-                elif (self.cells[row,column].get_state()==2):
+                elif self.cells[row, column].get_state() == Cell.TARGET:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='red')
-                elif (self.cells[row,column].get_state()==3):
+                elif self.cells[row, column].get_state() == Cell.OBSTACLE:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='purple')
-                elif (self.cells[row,column].get_state()==4):
+                elif self.cells[row, column].get_state() == Cell.WALKOVER:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='blue')
-        
-        #self.get_euclidean_util_map()
 
     def list_cells(self):
         # list all cells according to their type
-        
-        #self.p_cells = [] # list of origin pedestrian positions [NON-CHANGE]
-        self.t_cells = [] # list of origin target positions [NON-CHANGE]
-        self.o_cells = [] # list of origin obstacle positions [NON-CHANGE]
+
+        # self.p_cells = [] # list of origin pedestrian positions [NON-CHANGE]
+        self.o_cells = []  # list of origin obstacle positions [NON-CHANGE]
+        self.t_cells = []  # list of origin target positions [NON-CHANGE]
 
         for column in range(self.rows):
             for row in range(self.cols):
-                
-                #if self.cells[row, column].get_state() == 1:
-                    #self.p_cells.append(self.cells[row, column])
-                if self.cells[row, column].get_state() == 2:
-                    self.t_cells.append(self.cells[row, column])
-                if self.cells[row, column].get_state() == 3:
-                    self.o_cells.append(self.cells[row, column])
-      
 
-    def list_duplicates(self,seq):
-        tally = defaultdict(list)
-        for i,item in enumerate(seq):
-            tally[item].append(i)
-        return ((key,locs) for key,locs in tally.items() 
-                                if len(locs)>1)
-    
-    def indices_matches(self, a, b):
-        b_set = set(b)
-        return [i for i, j in enumerate(a) if j in b_set]
-    
+                # if self.cells[row, column].get_state() == 1:
+                # self.p_cells.append(self.cells[row, column])
+                if self.cells[row, column].get_state() == Cell.TARGET:
+                    self.t_cells.append(self.cells[row, column])
+                if self.cells[row, column].get_state() == Cell.OBSTACLE:
+                    self.o_cells.append(self.cells[row, column])
+
     def handle_conflict(self):
         p_to_update = []
         p_to_stay = []
         curr_pos = []
         next_pos = []
-        
-        #not finished peds
+
+        # not finished peds
         gen = (p for p in self.peds if p.arrived == 0)
         for p in gen:
             self.get_euclidean_util_map()
             p.set_next_position(self.utilMap)
-            next_pos.append( p.get_next_position())
-            curr_pos.append( p.find_position())
-        
-        #print(curr_pos)
-        #print(next_pos)
-        #find peds with same next_postion then randomly choose one to preceed, others stay put
-        for dup in self.list_duplicates(next_pos):
-            winner = random.choice(dup[1]) 
-            losers = list(set(dup[1])- set([winner]))
-            for loser in losers: 
+            next_pos.append(p.get_next_position())
+            curr_pos.append(p.find_position())
+
+        # find peds with same next_postion then randomly choose one to preceed, others stay put
+        for dup in list_duplicates(next_pos):
+            winner = random.choice(dup[1])
+            losers = list(set(dup[1]) - set([winner]))
+            for loser in losers:
                 p_to_stay.append(curr_pos[loser])
-        
-        #find peds whose next_position is occupied by peds who stay put
-        for i in self.indices_matches(next_pos,p_to_stay):
+
+        # find peds whose next_position is occupied by peds who stay put
+        for i in indices_matches(next_pos, p_to_stay):
             p_to_stay.append(curr_pos[i])
-            
-        p_to_update = list(set(curr_pos)-set(p_to_stay))
-        
+
+        p_to_update = list(set(curr_pos) - set(p_to_stay))
+
         return p_to_update
-    
+
     def update_cells(self):
         # update the Pedestrians position per time step
+
         self.b_next.config(state=DISABLED)
-        
+
         p_to_update = self.handle_conflict()
         print(p_to_update)
-        
+
         gen = (p for p in self.peds if p.find_position() in p_to_update)
-        for p in gen:            
-            p.update_peds(self.t_cells[0],self.cells)
-            if p.arrived == 1: self.reach_goal +=1 
-                
+        for p in gen:
+            p.update_peds(self.t_cells[0], self.cells)
+            if p.arrived == 1:
+                self.reach_goal += 1
+
         self.draw_cells()
         
         if self.reach_goal == len(self.peds):
             messagebox.showinfo(title='STOP', message='ALL GOAL')
-        
+
         self.b_next.config(state=NORMAL)
 
     def get_euclidean_util_map(self):
@@ -237,10 +229,8 @@ class GridWindow:
         self.list_cells()
         # print(self.t_cells[0].find_position())
         self.utilMap = EuclideanUtil().compute_util_map(self.rows, self.cols,
-                                                                 self.t_cells[0].find_position(),
-                                                                 self.o_cells)
-
-        #print(self.utilMap)
+                                                        self.t_cells[0].find_position(),
+                                                        self.o_cells)
 
         # plot the EUtilMap as density map
         fig, ax = plt.subplots(1, 1, figsize=(10, 10))
@@ -251,6 +241,4 @@ class GridWindow:
         ax.set_yticks(label_list)
         ax.title.set_text('util function')
         fig.colorbar(ax1, ax=ax)
-        #fig.show()
-
-  
+        # fig.show()
