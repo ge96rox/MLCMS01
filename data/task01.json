@@ -1,0 +1,5 @@
+{
+    "Pedestrian": ["(2,2)"],
+    "Target": "(4,3)",
+    "Obstacle": []
+}
