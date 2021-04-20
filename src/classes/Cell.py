@@ -159,14 +159,14 @@ class Pedestrian(Cell):
                     if 0 <= new_c <= len(m[0]) - 1:
                         if new_c == c and new_r == r:
                             continue
-                        print('(' + str(new_r) + ',' + str(new_c) + ')' + str(m[new_r, new_c]))
+                        #print('(' + str(new_r) + ',' + str(new_c) + ')' + str(m[new_r, new_c]))
                         neighbors.append(m[new_r, new_c])
                         if m[new_r, new_c] <= min_u:
                             best_n = (new_r, new_c)
                             min_u = m[new_r, new_c]
 
         # print(neighbors)
-        print(best_n)
+        # print(best_n)
         return best_n
 
 
