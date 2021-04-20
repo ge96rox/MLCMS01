@@ -203,7 +203,8 @@ class GridWindow:
         # not finished peds
         gen = (p for p in self.peds if p.arrived == 0)
         for p in gen:
-            self.get_euclidean_util_map()
+            # self.get_euclidean_util_map()
+            self.get_dijkstra_util_map()
             p.set_next_position(self.utilMap)
             next_pos.append(p.get_next_position())
             curr_pos.append(p.find_position())
@@ -229,7 +230,7 @@ class GridWindow:
         self.b_next.config(state=DISABLED)
 
         p_to_update = self.handle_conflict()
-        print(p_to_update)
+        # print(p_to_update)
 
         gen = (p for p in self.peds if p.find_position() in p_to_update)
         for p in gen:
@@ -265,3 +266,10 @@ class GridWindow:
         # ax.title.set_text('util function')
         # fig.colorbar(ax1, ax=ax)
         # fig.show()
+
+    def get_dijkstra_util_map(self):
+        self.list_cells()
+        self.utilMap = DijkstraUtil().compute_util_map(self.rows, self.cols,
+                                                       self.t_cells[0].find_position(),
+                                                       self.o_cells)
+        # print(self.utilMap)
