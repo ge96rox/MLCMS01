@@ -60,6 +60,7 @@ class GridWindow:
         self.grid = {}  # canvas grid image
         self.cells = {}  # cavas cells
         self.peds = [] # pedestrians
+        self.reach_goal = 0 # #of peds reached goal
         self.utilMap = {}
      
 
@@ -73,6 +74,7 @@ class GridWindow:
         self.b_load.pack(side=TOP, padx=2, pady=2)
 
     def draw_grid(self):
+     
         # draw the base grid with empty cells
         self.myCanvas = Canvas(self.myFrame)
         self.myCanvas.configure(width=self.cell_height * self.rows + 2, height=self.cell_width * self.cols + 2)
@@ -88,12 +90,14 @@ class GridWindow:
                 self.cells[row, column] = Cell(row, column)
 
     def clear_grid(self):
+        
         # clear the grid, set all cells to empty
         for column in range(self.rows):
             for row in range(self.cols):
                 self.myCanvas.itemconfig(self.grid[row, column], fill='white')
                 self.cells[row, column].set_state(0)
                 self.peds = []
+                self.reach_goal = 0 
 
     def load_grid(self):
         # Open json file and read the file id, setting the cells
@@ -134,8 +138,8 @@ class GridWindow:
         self.b_load.config(state=NORMAL)
 
     def draw_cells(self):
-        # draw the cells (Pedestrians, Obstacle, Target) on the grid
         
+        # draw the cells (Pedestrians, Obstacle, Target) on the grid
         for column in range(self.rows):
             for row in range(self.cols):
                 if(self.cells[row,column].get_state()==1):
@@ -215,13 +219,15 @@ class GridWindow:
         
         p_to_update = self.handle_conflict()
         print(p_to_update)
-        reach_goal = 0 
+        
         gen = (p for p in self.peds if p.find_position() in p_to_update)
         for p in gen:            
             p.update_peds(self.t_cells[0],self.cells)
-            if p.arrived == 1: reach_goal +=1 
+            if p.arrived == 1: self.reach_goal +=1 
+                
         self.draw_cells()
-        if reach_goal == len(self.peds):
+        
+        if self.reach_goal == len(self.peds):
             messagebox.showinfo(title='STOP', message='ALL GOAL')
         
         self.b_next.config(state=NORMAL)
