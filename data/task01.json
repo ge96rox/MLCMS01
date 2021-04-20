@@ -1,5 +1,5 @@
 {
-    "Pedestrian": ["(2,2)"],
+    "Pedestrian": ["(2,0)"],
     "Target": "(4,3)",
-    "Obstacle": []
+    "Obstacle": ["(3,3)"]
 }
