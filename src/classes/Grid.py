@@ -307,5 +307,3 @@ class GridWindow:
         print(self.icost_map)
         
         
-
-
