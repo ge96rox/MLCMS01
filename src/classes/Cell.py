@@ -1,6 +1,7 @@
 # Created by longtaoliu at 19.04.21
-#from classes.Grid import GridWindow
+# from classes.Grid import GridWindow
 import numpy as np
+
 
 class Cell:
     """
@@ -34,6 +35,12 @@ class Cell:
 
     """
 
+    UNMARKED = 0
+    PEDESTRIAN = 1
+    TARGET = 2
+    OBSTACLE = 3
+    WALKOVER = 4
+
     def __init__(self, row, col):
         self.current_row = row
         self.current_col = col
@@ -55,7 +62,8 @@ class Cell:
     def get_state(self):
         return self.current_state
 
-class Pedestrian(Cell):       
+
+class Pedestrian(Cell):
     """
        Cell(row, col)
        A class represent each Pedestrian in canvas
@@ -100,45 +108,43 @@ class Pedestrian(Cell):
 
 
     """
-    
-    #class present each pedestrian in canvas
-    def __init__(self, row, col): 
+
+    # class present each pedestrian in canvas
+    def __init__(self, row, col):
         super().__init__(row, col)
         self.current_state = 1
-        self.arrived = 0 
+        self.arrived = 0
         self.speed = 1
         self.next_row = row
         self.next_col = col
-     
 
     def is_arrived(self):
         self.arrived = 1
-        
-    def set_next_position(self,util_map):
-        
+
+    def set_next_position(self, util_map):
+
         row = self.current_row
         column = self.current_col
-        best_n = self.find_best_neighbor(util_map, row, column) 
+        best_n = self.find_best_neighbor(util_map, row, column)
         self.next_row = best_n[0]
         self.next_col = best_n[1]
 
     def get_next_position(self):
         # return the position of cell
         return self.next_row, self.next_col
-    
-    def update_peds(self,target,cells):
-        
-        if (self.get_next_position()==target.find_position()):
+
+    def update_peds(self, target, cells):
+
+        if self.get_next_position() == target.find_position():
             self.is_arrived()
-            self.set_position(self.get_next_position()[0],self.get_next_position()[1])
-            cells[self.find_position()].set_state(2)
-            #messagebox.showinfo(title='STOP', message='GOAL')
+            self.set_position(self.get_next_position()[0], self.get_next_position()[1])
+            cells[self.find_position()].set_state(Cell.TARGET)
+            # messagebox.showinfo(title='STOP', message='GOAL')
         else:
-            cells[self.find_position()].set_state(4)
-            self.set_position(self.get_next_position()[0],self.get_next_position()[1])
-            cells[self.find_position()].set_state(1)
-          
-    
+            cells[self.find_position()].set_state(Cell.WALKOVER)
+            self.set_position(self.get_next_position()[0], self.get_next_position()[1])
+            cells[self.find_position()].set_state(Cell.PEDESTRIAN)
+
     @staticmethod
     def find_best_neighbor(m, r, c):
         # return the position of neighbor with smallest util around cell@(r,c) based on UtilMap m
@@ -153,15 +159,16 @@ class Pedestrian(Cell):
                     if 0 <= new_c <= len(m[0]) - 1:
                         if new_c == c and new_r == r:
                             continue
-                        #print('(' + str(new_r) + ',' + str(new_c) + ')' + str(m[new_r, new_c]))
+                        print('(' + str(new_r) + ',' + str(new_c) + ')' + str(m[new_r, new_c]))
                         neighbors.append(m[new_r, new_c])
                         if m[new_r, new_c] <= min_u:
                             best_n = (new_r, new_c)
                             min_u = m[new_r, new_c]
 
         # print(neighbors)
-        # print(best_n)
+        print(best_n)
         return best_n
+
 
 """
 
