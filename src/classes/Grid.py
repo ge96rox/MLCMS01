@@ -62,6 +62,8 @@ class GridWindow:
         self.pre_run = False
         self.step = 0
         self.round_finish = False
+        self.animation = False
+        self.first_round = True
         self.time = 400
 
         self.grid = {}  # canvas grid image
@@ -74,14 +76,24 @@ class GridWindow:
         self.o_cells = []
         self.t_cells = []
 
-        self.b_next = Button(self.myFrame, text='run', command=self.update_cells)
+        self.b_next = Button(self.myFrame, text='next', command=self.update_cells)
         self.b_next.pack(side=TOP, padx=2, pady=2)
+        self.b_next.config(state=DISABLED)
 
         self.b_clear = Button(self.myFrame, text='clear', command=self.clear_grid)
         self.b_clear.pack(side=TOP, padx=2, pady=2)
 
         self.b_load = Button(self.myFrame, text='open', command=self.init_setup)
         self.b_load.pack(side=TOP, padx=2, pady=2)
+
+        self.b_run = Button(self.myFrame, text='run', command=self.animate)
+        self.b_run.pack(side=TOP, padx=2, pady=2)
+        self.b_run.config(state=DISABLED)
+
+        self.label_text = StringVar()
+        self.label_text.set(' step')
+        self.label = Label(self.myFrame, textvariable=self.label_text)
+        self.label.pack(side=TOP, padx=2, pady=2)
 
     def draw_grid(self):
 
@@ -103,6 +115,11 @@ class GridWindow:
                 self.cells[row, column].set_state(0)
                 self.peds = []
                 self.reach_goal = 0
+        self.b_load.config(state=NORMAL)
+        self.b_run.config(state=DISABLED)
+        self.step = 0
+        self.round_finish = False
+        self.label_text.set(' step')
 
     def init_setup(self):
 
@@ -122,11 +139,14 @@ class GridWindow:
 
         # draw the base grid with empty cells
         if self.step == 0:
+            self.first_round = True
             self.draw_grid()
+
         self.load_grid(data)
 
         # draw the cells
         self.draw_cells()
+        self.b_next.config(state=NORMAL)
 
     def open_read_data(self):
 
@@ -175,7 +195,13 @@ class GridWindow:
                 elif self.cells[row, column].get_state() == Cell.OBSTACLE:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='purple')
                 elif self.cells[row, column].get_state() == Cell.WALKOVER:
-                    self.myCanvas.itemconfig(self.grid[row, column], fill='blue')
+                    self.myCanvas.itemconfig(self.grid[row, column], fill='white')
+        self.b_run.config(state=NORMAL)
+        if self.first_round:
+            self.first_round = False
+        else:
+            self.step += 1
+        self.label_text.set('{} step'.format(self.step))
 
     def list_cells(self):
         # list all cells according to their type
@@ -236,16 +262,22 @@ class GridWindow:
             p.update_peds(self.t_cells[0], self.cells)
             if p.arrived == 1:
                 self.reach_goal += 1
-
         self.draw_cells()
+        self.check_game_end()
+        self.b_next.config(state=NORMAL)
 
+    def check_game_end(self):
         if self.reach_goal == len(self.peds):
             messagebox.showinfo(title='STOP', message='ALL GOAL')
             self.pre_run = True
-        else:
+            self.animation = False
+            self.round_finish = True
+        if not self.round_finish and self.animation:
             self.myFrame.after(self.time, self.update_cells)
-        self.b_next.config(state=NORMAL)
-        self.b_load.config(state=NORMAL)
+
+    def animate(self):
+        self.animation = True
+        self.update_cells()
 
     def get_euclidean_util_map(self):
         # compute the EuclideanDistance UtilMap

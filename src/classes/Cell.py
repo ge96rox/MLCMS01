@@ -135,15 +135,19 @@ class Pedestrian(Cell):
 
     def update_peds(self, target, cells):
 
-        if self.get_next_position() == target.find_position():
+        if (self.current_row, self.current_col) == target.find_position():
             self.is_arrived()
+            cells[self.find_position()].set_state(Cell.TARGET)
+        elif self.get_next_position() == target.find_position():
+            cells[self.find_position()].set_state(Cell.WALKOVER)
             self.set_position(self.get_next_position()[0], self.get_next_position()[1])
             cells[self.find_position()].set_state(Cell.TARGET)
-            # messagebox.showinfo(title='STOP', message='GOAL')
         else:
             cells[self.find_position()].set_state(Cell.WALKOVER)
             self.set_position(self.get_next_position()[0], self.get_next_position()[1])
             cells[self.find_position()].set_state(Cell.PEDESTRIAN)
+
+
 
     @staticmethod
     def find_best_neighbor(m, r, c):
