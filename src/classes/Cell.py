@@ -113,13 +113,13 @@ class Pedestrian(Cell):
     def __init__(self, row, col):
         super().__init__(row, col)
         self.current_state = 1
-        self.arrived = 0
+        self.arrived = False
         self.speed = 1
         self.next_row = row
         self.next_col = col
 
     def is_arrived(self):
-        self.arrived = 1
+        self.arrived = True
 
     def set_next_position(self, util_map):
 
@@ -135,11 +135,13 @@ class Pedestrian(Cell):
 
     def update_peds(self, target, cells):
 
-        if self.get_next_position() == target.find_position():
+        if (self.current_row, self.current_col) == target.find_position():
+            cells[self.find_position()].set_state(Cell.TARGET)
+        elif self.get_next_position() == target.find_position():
             self.is_arrived()
+            cells[self.find_position()].set_state(Cell.WALKOVER)
             self.set_position(self.get_next_position()[0], self.get_next_position()[1])
             cells[self.find_position()].set_state(Cell.TARGET)
-            # messagebox.showinfo(title='STOP', message='GOAL')
         else:
             cells[self.find_position()].set_state(Cell.WALKOVER)
             self.set_position(self.get_next_position()[0], self.get_next_position()[1])
@@ -159,14 +161,14 @@ class Pedestrian(Cell):
                     if 0 <= new_c <= len(m[0]) - 1:
                         if new_c == c and new_r == r:
                             continue
-                        print('(' + str(new_r) + ',' + str(new_c) + ')' + str(m[new_r, new_c]))
+                        # print('(' + str(new_r) + ',' + str(new_c) + ')' + str(m[new_r, new_c]))
                         neighbors.append(m[new_r, new_c])
                         if m[new_r, new_c] <= min_u:
                             best_n = (new_r, new_c)
                             min_u = m[new_r, new_c]
 
         # print(neighbors)
-        print(best_n)
+        # print(best_n)
         return best_n
 
 
