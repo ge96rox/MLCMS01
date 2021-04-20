@@ -76,6 +76,7 @@ class GridWindow:
         self.timestep = 0  # #of time step
 
         self.eu_util_map = {}
+        self.dij_util_map = {}
         self.icost_map = {}
         self.util_map = {}
 
@@ -231,7 +232,10 @@ class GridWindow:
         # not finished peds
         gen = (p for p in self.peds if p.arrived == 0)
         for p in gen:
-            self.get_euclidean_util_map()
+            if self.method == "Euclidean":
+                self.get_euclidean_util_map()
+            elif self.method == "Dijkstra":
+                self.get_dijkstra_util_map()
 
             self.get_interaction_cost_map(p)
 
@@ -239,6 +243,10 @@ class GridWindow:
                 self.util_map = self.eu_util_map
             elif self.method == "Euclidean+Cost":
                 self.util_map = self.icost_map + self.eu_util_map
+            if self.method == "Dijkstra":
+                self.util_map = self.dij_util_map
+            elif self.method == "Dijkstra+Cost":
+                self.util_map = self.icost_map + self.dij_util_map
 
             p.set_next_position(self.util_map)
             next_pos.append(p.get_next_position())
@@ -310,6 +318,13 @@ class GridWindow:
         # ax.title.set_text('util function')
         # fig.colorbar(ax1, ax=ax)
         # fig.show()
+
+    def get_dijkstra_util_map(self):
+        self.list_cells()
+        self.dij_util_map = DijkstraUtil().compute_util_map(self.rows, self.cols,
+                                                            self.t_cells[0].find_position(),
+                                                            self.o_cells)
+        print(self.dij_util_map)
 
     def get_interaction_cost_map(self, pedestrian):
 
