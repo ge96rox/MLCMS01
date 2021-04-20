@@ -46,7 +46,7 @@ class GridWindow:
 
     """
 
-    def __init__(self, parent, rows, cols, width, height):
+    def __init__(self, parent):
         self.myParent = parent
         self.myFrame = Frame(parent)
         self.myFrame.pack()
@@ -54,36 +54,36 @@ class GridWindow:
         self.mark_path = True
         self.input_file = None
 
-        self.rows = rows
-        self.cols = cols
-        self.cell_width = width / cols
-        self.cell_height = height / rows
+        self.rows = None
+        self.cols = None
+        self.cell_width = None
+        self.cell_height = None
+        self.cell_size = None
+        self.pre_run = False
+        self.step = 0
+        self.round_finish = False
+        self.time = 400
 
         self.grid = {}  # canvas grid image
         self.cells = {}  # cavas cells
 
-        self.peds = [] # pedestrians
-        self.reach_goal = 0 # #of peds reached goal
+        self.peds = []  # pedestrians
+        self.reach_goal = 0  # #of peds reached goal
 
         self.utilMap = {}
         self.o_cells = []
         self.t_cells = []
 
-        self.b_next = Button(self.myFrame, text='next timestep', command=self.update_cells)
+        self.b_next = Button(self.myFrame, text='run', command=self.update_cells)
         self.b_next.pack(side=TOP, padx=2, pady=2)
 
         self.b_clear = Button(self.myFrame, text='clear', command=self.clear_grid)
         self.b_clear.pack(side=TOP, padx=2, pady=2)
 
-        self.b_load = Button(self.myFrame, text='open', command=self.load_grid)
+        self.b_load = Button(self.myFrame, text='open', command=self.init_setup)
         self.b_load.pack(side=TOP, padx=2, pady=2)
 
     def draw_grid(self):
-     
-        # draw the base grid with empty cells
-        self.myCanvas = Canvas(self.myFrame)
-        self.myCanvas.configure(width=self.cell_height * self.rows + 2, height=self.cell_width * self.cols + 2)
-        self.myCanvas.pack(side=RIGHT)
 
         for column in range(self.rows):
             for row in range(self.cols):
@@ -95,57 +95,77 @@ class GridWindow:
                 self.cells[row, column] = Cell(row, column)
 
     def clear_grid(self):
-        
+
         # clear the grid, set all cells to empty
         for column in range(self.rows):
             for row in range(self.cols):
                 self.myCanvas.itemconfig(self.grid[row, column], fill='white')
                 self.cells[row, column].set_state(0)
                 self.peds = []
-                self.reach_goal = 0 
+                self.reach_goal = 0
 
-    def load_grid(self):
+    def init_setup(self):
+
         # Open json file and read the file id, setting the cells
         self.b_load.config(state=DISABLED)
 
-        self.clear_grid()
-        self.input_file = filedialog.askopenfilename(filetypes=[("Json", '*.json'), ("All files", "*.*")])
-
-        if not self.input_file:
-            return
-        print('Loading file from', self.input_file)
-
         # json parser
-        with open(self.input_file) as jf:
-            data = js.load(jf)
+        data = self.open_read_data()
 
-            for ps in data['Pedestrian']:
-                p = ps.split(',')
-                p_row = int(p[0][1])
-                p_col = int(p[1][0])
-                self.cells[p_row, p_col].set_state(1)
-                self.peds.append(Pedestrian(p_row, p_col))
+        if self.pre_run:
+            self.clear_grid()
+            self.pre_run = False
+        else:
+            self.myCanvas = Canvas(self.myFrame)
+            self.myCanvas.configure(width=self.cell_height * self.rows + 4, height=self.cell_width * self.cols + 4)
+            self.myCanvas.pack(side=RIGHT)
 
-            t = data['Target']
-            t_row = int(t[1])
-            t_col = int(t[3])
-            self.cells[t_row, t_col].set_state(2)
-
-            for os in data['Obstacle']:
-                o = os.split(',')
-                o_row = int(o[0][1])
-                o_col = int(o[1][0])
-                self.cells[o_row, o_col].set_state(3)
+        # draw the base grid with empty cells
+        if self.step == 0:
+            self.draw_grid()
+        self.load_grid(data)
 
         # draw the cells
         self.draw_cells()
 
-        self.b_load.config(state=NORMAL)
+    def open_read_data(self):
+
+        self.input_file = filedialog.askopenfilename(filetypes=[("Json", '*.json'), ("All files", "*.*")])
+        if not self.input_file:
+            return
+        print('Loading file from', self.input_file)
+        with open(self.input_file) as jf:
+            data = js.load(jf)
+        self.cell_size = data['cell_size']
+        self.rows = data['rows']
+        self.cols = data['cols']
+        self.cell_height = self.cell_size
+        self.cell_width = self.cell_size
+        return data
+
+    def load_grid(self, data):
+
+        for ps in data['Pedestrian']:
+            p = ps.split(',')
+            p_row = int(p[0][1])
+            p_col = int(p[1][0])
+            self.cells[p_row, p_col].set_state(Cell.PEDESTRIAN)
+            self.peds.append(Pedestrian(p_row, p_col))
+
+        t = data['Target']
+        t_row = int(t[1])
+        t_col = int(t[3])
+        self.cells[t_row, t_col].set_state(Cell.TARGET)
+
+        for os in data['Obstacle']:
+            o = os.split(',')
+            o_row = int(o[0][1])
+            o_col = int(o[1][0])
+            self.cells[o_row, o_col].set_state(Cell.OBSTACLE)
 
     def draw_cells(self):
-        
-        # draw the cells (Pedestrians, Obstacle, Target) on the grid
 
+        # draw the cells (Pedestrians, Obstacle, Target) on the grid
         for column in range(self.rows):
             for row in range(self.cols):
                 if self.cells[row, column].get_state() == Cell.PEDESTRIAN:
@@ -218,11 +238,14 @@ class GridWindow:
                 self.reach_goal += 1
 
         self.draw_cells()
-        
+
         if self.reach_goal == len(self.peds):
             messagebox.showinfo(title='STOP', message='ALL GOAL')
-
+            self.pre_run = True
+        else:
+            self.myFrame.after(self.time, self.update_cells)
         self.b_next.config(state=NORMAL)
+        self.b_load.config(state=NORMAL)
 
     def get_euclidean_util_map(self):
         # compute the EuclideanDistance UtilMap
@@ -233,12 +256,12 @@ class GridWindow:
                                                         self.o_cells)
 
         # plot the EUtilMap as density map
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-        ax1 = ax.pcolormesh(self.utilMap, vmin=0, vmax=1, cmap='Greens')
-        label_list = np.arange(0, self.rows - 1, 1)
-        label_list = np.append(label_list, self.rows - 1)
-        ax.set_xticks(label_list)
-        ax.set_yticks(label_list)
-        ax.title.set_text('util function')
-        fig.colorbar(ax1, ax=ax)
+        # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        # ax1 = ax.pcolormesh(self.utilMap, vmin=0, vmax=1, cmap='Greens')
+        # label_list = np.arange(0, self.rows - 1, 1)
+        # label_list = np.append(label_list, self.rows - 1)
+        # ax.set_xticks(label_list)
+        # ax.set_yticks(label_list)
+        # ax.title.set_text('util function')
+        # fig.colorbar(ax1, ax=ax)
         # fig.show()

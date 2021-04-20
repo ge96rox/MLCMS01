@@ -3,23 +3,12 @@
 from classes.Grid import *
 
 
-def run_app(r, c, w, h):
+def run_app():
     root = Tk()
-    myapp = GridWindow(root, r, c, w, h)
-    myapp.draw_grid()
-    # myapp.draw_cells()
-    # myapp.get_EUtilMap()
+    GridWindow(root)
     root.mainloop()
 
 
 if __name__ == '__main__':
-    # p1 = Cell(0,0)
-    # p1.set_state(1)
-    # p2 = Cell(2,3)
-    # p2.set_state(1)
-    # t = Cell(1,4)
-    # t.set_state(2)
-    # o = Cell(2,4)
-    # o.set_state(3)
 
-    run_app(5, 5, 600, 600)
+    run_app()
