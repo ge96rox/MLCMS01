@@ -4,18 +4,14 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 
-from functools import partial
-import gc
-
 import json as js
-
 import random
 
 from classes.Cell import *
 from classes.Util import *
 
 import matplotlib
-import matplotlib.pyplot as plt
+
 
 from util.helper import list_duplicates, indices_matches
 
@@ -137,7 +133,6 @@ class GridWindow:
         data = self.open_read_data()
 
         if self.pre_run:
-            self.clear_grid()
             self.pre_run = False
         else:
             self.myCanvas = Canvas(self.myFrame)
@@ -324,7 +319,7 @@ class GridWindow:
         self.dij_util_map = DijkstraUtil().compute_util_map(self.rows, self.cols,
                                                             self.t_cells[0].find_position(),
                                                             self.o_cells)
-        print(self.dij_util_map)
+        # print(self.dij_util_map)
 
     def get_interaction_cost_map(self, pedestrian):
 
