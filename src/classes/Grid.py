@@ -5,14 +5,13 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 import json as js
-
 import random
 
 from classes.Cell import *
 from classes.Util import *
 
 import matplotlib
-import matplotlib.pyplot as plt
+
 
 from util.helper import list_duplicates, indices_matches
 
@@ -49,7 +48,7 @@ class GridWindow:
     def __init__(self, parent):
         self.myParent = parent
         self.myFrame = Frame(parent)
-        self.myFrame.pack()
+        self.myFrame.grid()
         self.myCanvas = None
         self.mark_path = True
         self.input_file = None
@@ -60,28 +59,44 @@ class GridWindow:
         self.cell_height = None
         self.cell_size = None
         self.pre_run = False
-        self.step = 0
         self.round_finish = False
-        self.time = 400
+        self.animation = False
+        self.first_round = True
+        self.time = 100
 
         self.grid = {}  # canvas grid image
         self.cells = {}  # cavas cells
 
         self.peds = []  # pedestrians
         self.reach_goal = 0  # #of peds reached goal
+        self.timestep = 0  # #of time step
 
-        self.utilMap = {}
+        self.eu_util_map = {}
+        self.dij_util_map = {}
+        self.icost_map = {}
+        self.util_map = {}
+
         self.o_cells = []
         self.t_cells = []
 
-        self.b_next = Button(self.myFrame, text='run', command=self.update_cells)
+        self.b_next = Button(self.myFrame, text='next', command=self.update_cells)
         self.b_next.pack(side=TOP, padx=2, pady=2)
+        self.b_next.config(state=DISABLED)
 
         self.b_clear = Button(self.myFrame, text='clear', command=self.clear_grid)
         self.b_clear.pack(side=TOP, padx=2, pady=2)
 
         self.b_load = Button(self.myFrame, text='open', command=self.init_setup)
         self.b_load.pack(side=TOP, padx=2, pady=2)
+
+        self.b_run = Button(self.myFrame, text='run', command=self.animate)
+        self.b_run.pack(side=TOP, padx=2, pady=2)
+        self.b_run.config(state=DISABLED)
+
+        self.label_text = StringVar()
+        self.label_text.set(' step')
+        self.label = Label(self.myFrame, textvariable=self.label_text)
+        self.label.pack(side=TOP, padx=2, pady=2)
 
     def draw_grid(self):
 
@@ -103,6 +118,11 @@ class GridWindow:
                 self.cells[row, column].set_state(0)
                 self.peds = []
                 self.reach_goal = 0
+        self.b_load.config(state=NORMAL)
+        self.b_run.config(state=DISABLED)
+        self.timestep = 0
+        self.round_finish = False
+        self.label_text.set(' step')
 
     def init_setup(self):
 
@@ -113,7 +133,6 @@ class GridWindow:
         data = self.open_read_data()
 
         if self.pre_run:
-            self.clear_grid()
             self.pre_run = False
         else:
             self.myCanvas = Canvas(self.myFrame)
@@ -121,12 +140,21 @@ class GridWindow:
             self.myCanvas.pack(side=RIGHT)
 
         # draw the base grid with empty cells
-        if self.step == 0:
+        if self.timestep == 0:
+            self.first_round = True
             self.draw_grid()
+
         self.load_grid(data)
 
         # draw the cells
         self.draw_cells()
+        
+        # STATIC FIELD ONLY NEED TO CALCULATE ONCE
+        if self.method == "Euclidean":
+            self.get_euclidean_util_map()
+        elif self.method == "Dijkstra":
+            self.get_dijkstra_util_map()
+        self.b_next.config(state=NORMAL)
 
     def open_read_data(self):
 
@@ -136,32 +164,28 @@ class GridWindow:
         print('Loading file from', self.input_file)
         with open(self.input_file) as jf:
             data = js.load(jf)
-        self.cell_size = data['cell_size']
-        self.rows = data['rows']
+
         self.cols = data['cols']
-        self.cell_height = self.cell_size
-        self.cell_width = self.cell_size
+        self.rows = data['rows']
+        self.width = data['width']
+        self.height = data['height']
+        self.cell_width = self.width / self.cols
+        self.cell_height = self.height / self.rows
+        self.method = data['method']
+
         return data
 
     def load_grid(self, data):
 
-        for ps in data['Pedestrian']:
-            p = ps.split(',')
-            p_row = int(p[0][1])
-            p_col = int(p[1][0])
-            self.cells[p_row, p_col].set_state(Cell.PEDESTRIAN)
-            self.peds.append(Pedestrian(p_row, p_col))
+        for row, col in data['pedestrians']:
+            self.cells[row, col].set_state(Cell.PEDESTRIAN)
+            self.peds.append(Pedestrian(row, col))
 
-        t = data['Target']
-        t_row = int(t[1])
-        t_col = int(t[3])
-        self.cells[t_row, t_col].set_state(Cell.TARGET)
+        for row, col in data['target']:
+            self.cells[row, col].set_state(Cell.TARGET)
 
-        for os in data['Obstacle']:
-            o = os.split(',')
-            o_row = int(o[0][1])
-            o_col = int(o[1][0])
-            self.cells[o_row, o_col].set_state(Cell.OBSTACLE)
+        for row, col in data['obstacles']:
+            self.cells[row, col].set_state(Cell.OBSTACLE)
 
     def draw_cells(self):
 
@@ -169,13 +193,19 @@ class GridWindow:
         for column in range(self.rows):
             for row in range(self.cols):
                 if self.cells[row, column].get_state() == Cell.PEDESTRIAN:
-                    self.myCanvas.itemconfig(self.grid[row, column], fill='yellow')
+                    self.myCanvas.itemconfig(self.grid[row, column], fill='green')
                 elif self.cells[row, column].get_state() == Cell.TARGET:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='red')
                 elif self.cells[row, column].get_state() == Cell.OBSTACLE:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='purple')
                 elif self.cells[row, column].get_state() == Cell.WALKOVER:
-                    self.myCanvas.itemconfig(self.grid[row, column], fill='blue')
+                    self.myCanvas.itemconfig(self.grid[row, column], fill='white')
+        self.b_run.config(state=NORMAL)
+        if self.first_round:
+            self.first_round = False
+        else:
+            self.timestep += 1
+        self.label_text.set('{} step'.format(self.timestep))
 
     def list_cells(self):
         # list all cells according to their type
@@ -203,9 +233,19 @@ class GridWindow:
         # not finished peds
         gen = (p for p in self.peds if p.arrived == 0)
         for p in gen:
-            # self.get_euclidean_util_map()
-            self.get_dijkstra_util_map()
-            p.set_next_position(self.utilMap)
+
+            self.get_interaction_cost_map(p)
+
+            if self.method == "Euclidean":
+                self.util_map = self.eu_util_map
+            elif self.method == "Euclidean+Cost":
+                self.util_map = self.icost_map + self.eu_util_map
+            if self.method == "Dijkstra":
+                self.util_map = self.dij_util_map
+            elif self.method == "Dijkstra+Cost":
+                self.util_map = self.icost_map + self.dij_util_map
+
+            p.set_next_position(self.util_map)
             next_pos.append(p.get_next_position())
             curr_pos.append(p.find_position())
 
@@ -226,39 +266,48 @@ class GridWindow:
 
     def update_cells(self):
         # update the Pedestrians position per time step
+        if not self.round_finish:
+            self.b_next.config(state=DISABLED)
 
-        self.b_next.config(state=DISABLED)
+            p_to_update = self.handle_conflict()
 
-        p_to_update = self.handle_conflict()
-        # print(p_to_update)
+            # print(p_to_update)
 
-        gen = (p for p in self.peds if p.find_position() in p_to_update)
-        for p in gen:
-            p.update_peds(self.t_cells[0], self.cells)
-            if p.arrived == 1:
-                self.reach_goal += 1
+            gen = (p for p in self.peds if p.find_position() in p_to_update)
+            for p in gen:
+                p.update_peds(self.t_cells[0], self.cells)
+                if p.arrived:
+                    self.reach_goal += 1
+            self.draw_cells()
+            self.check_game_end()
+            self.b_next.config(state=NORMAL)
 
-        self.draw_cells()
-
+    def check_game_end(self):
         if self.reach_goal == len(self.peds):
             messagebox.showinfo(title='STOP', message='ALL GOAL')
             self.pre_run = True
-        else:
+            self.animation = False
+            self.round_finish = True
+            self.timestep = 0
+        if not self.round_finish and self.animation:
             self.myFrame.after(self.time, self.update_cells)
-        self.b_next.config(state=NORMAL)
-        self.b_load.config(state=NORMAL)
+
+    def animate(self):
+        self.animation = True
+        self.update_cells()
 
     def get_euclidean_util_map(self):
         # compute the EuclideanDistance UtilMap
         self.list_cells()
         # print(self.t_cells[0].find_position())
-        self.utilMap = EuclideanUtil().compute_util_map(self.rows, self.cols,
-                                                        self.t_cells[0].find_position(),
-                                                        self.o_cells)
+
+        self.eu_util_map = EuclideanUtil().compute_util_map(self.rows, self.cols,
+                                                            self.t_cells[0],
+                                                            self.o_cells)
 
         # plot the EUtilMap as density map
         # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-        # ax1 = ax.pcolormesh(self.utilMap, vmin=0, vmax=1, cmap='Greens')
+        # ax1 = ax.pcolormesh(self.eu_util_map, vmin=0, vmax=1, cmap='Greens')
         # label_list = np.arange(0, self.rows - 1, 1)
         # label_list = np.append(label_list, self.rows - 1)
         # ax.set_xticks(label_list)
@@ -269,7 +318,17 @@ class GridWindow:
 
     def get_dijkstra_util_map(self):
         self.list_cells()
-        self.utilMap = DijkstraUtil().compute_util_map(self.rows, self.cols,
-                                                       self.t_cells[0].find_position(),
-                                                       self.o_cells)
-        # print(self.utilMap)
+        self.dij_util_map = DijkstraUtil().compute_util_map(self.rows, self.cols,
+                                                            self.t_cells[0].find_position(),
+                                                            self.o_cells)
+        # print(self.dij_util_map)
+
+    def get_interaction_cost_map(self, pedestrian):
+
+        other_peds = []
+        gen = (p for p in self.peds if p.arrived == 0)
+        for p in gen:
+            if p != pedestrian: other_peds.append(p)
+        self.icost_map = InteractionCost().compute_cost_map(self.rows, self.cols, pedestrian, other_peds)
+
+        # print(self.icost_map)

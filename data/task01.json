@@ -1,5 +1,10 @@
 {
-    "Pedestrian": ["(2,0)"],
-    "Target": "(4,3)",
-    "Obstacle": ["(3,3)"]
+    "rows": 5,
+    "cols": 5,
+    "width": 400,
+    "height": 400,
+    "pedestrians": [ [2,2] ],
+    "obstacles": [ ],
+    "target": [ [4,2] ],
+    "method": "Euclidean"
 }
