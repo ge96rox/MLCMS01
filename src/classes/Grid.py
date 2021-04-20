@@ -62,7 +62,7 @@ class GridWindow:
         self.round_finish = False
         self.animation = False
         self.first_round = True
-        self.time = 200
+        self.time = 100
 
         self.grid = {}  # canvas grid image
         self.cells = {}  # cavas cells
@@ -148,6 +148,12 @@ class GridWindow:
 
         # draw the cells
         self.draw_cells()
+        
+        # STATIC FIELD ONLY NEED TO CALCULATE ONCE
+        if self.method == "Euclidean":
+            self.get_euclidean_util_map()
+        elif self.method == "Dijkstra":
+            self.get_dijkstra_util_map()
         self.b_next.config(state=NORMAL)
 
     def open_read_data(self):
@@ -187,7 +193,7 @@ class GridWindow:
         for column in range(self.rows):
             for row in range(self.cols):
                 if self.cells[row, column].get_state() == Cell.PEDESTRIAN:
-                    self.myCanvas.itemconfig(self.grid[row, column], fill='yellow')
+                    self.myCanvas.itemconfig(self.grid[row, column], fill='green')
                 elif self.cells[row, column].get_state() == Cell.TARGET:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='red')
                 elif self.cells[row, column].get_state() == Cell.OBSTACLE:
@@ -227,10 +233,6 @@ class GridWindow:
         # not finished peds
         gen = (p for p in self.peds if p.arrived == 0)
         for p in gen:
-            if self.method == "Euclidean":
-                self.get_euclidean_util_map()
-            elif self.method == "Dijkstra":
-                self.get_dijkstra_util_map()
 
             self.get_interaction_cost_map(p)
 
