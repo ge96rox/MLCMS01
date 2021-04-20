@@ -3,15 +3,12 @@
 from classes.Grid import *
 
 
-def runApp():
+def run_app():
     root = Tk()
-    myapp = GridWindow(root)
+    GridWindow(root)
     root.mainloop()
-    
-#if __name__ == '__main__':
-   # runApp(5,5,600,600)
+
 
 if __name__ == '__main__':
-   
 
-    runApp()
+    run_app()
