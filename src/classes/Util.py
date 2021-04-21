@@ -136,7 +136,7 @@ class InteractionCost:
     """
 
     def compute_cost(self, r):
-        self.r_max = 3
+        self.r_max = 1
         return np.exp(1 / (np.power(r, 2) - np.power(self.r_max, 2))) if r < self.r_max else 0
 
     def compute_cost_map(self, r, c, pedestrian, other_peds):

@@ -71,10 +71,10 @@ class GridWindow:
         self.reach_goal = 0  # #of peds reached goal
         self.timestep = 0  # #of time step
 
-        self.eu_util_map = {}
-        self.dij_util_map = {}
-        self.icost_map = {}
-        self.util_map = {}
+        self.eu_util_map = None
+        self.dij_util_map = None
+        self.icost_map = None
+        self.util_map = None
 
         self.o_cells = []
         self.t_cells = []
@@ -116,8 +116,9 @@ class GridWindow:
             for row in range(self.cols):
                 self.myCanvas.itemconfig(self.grid[row, column], fill='white')
                 self.cells[row, column].set_state(0)
-                self.peds = []
-                self.reach_goal = 0
+        
+        self.peds = []
+        self.reach_goal = 0
         self.b_load.config(state=NORMAL)
         self.b_run.config(state=DISABLED)
         self.timestep = 0
@@ -152,10 +153,15 @@ class GridWindow:
         # STATIC FIELD ONLY NEED TO CALCULATE ONCE
         if self.method == "Euclidean":
             self.get_euclidean_util_map()
+        elif self.method == "Euclidean+Cost":
+            self.get_euclidean_util_map()
         elif self.method == "Dijkstra":
             self.get_dijkstra_util_map()
+        elif self.method == "Dijkstra+Cost":
+            self.get_dijkstra_util_map()
+            
         self.b_next.config(state=NORMAL)
-
+       
     def open_read_data(self):
 
         self.input_file = filedialog.askopenfilename(filetypes=[("Json", '*.json'), ("All files", "*.*")])
@@ -238,12 +244,12 @@ class GridWindow:
 
             if self.method == "Euclidean":
                 self.util_map = self.eu_util_map
-            elif self.method == "Euclidean+Cost":
-                self.util_map = self.icost_map + self.eu_util_map
+            elif self.method == "Euclidean+Cost":   
+                self.util_map = self.icost_map + self.eu_util_map            
             if self.method == "Dijkstra":
                 self.util_map = self.dij_util_map
             elif self.method == "Dijkstra+Cost":
-                self.util_map = self.icost_map + self.dij_util_map
+                self.util_map = self.icost_map +self.dij_util_map
 
             p.set_next_position(self.util_map)
             next_pos.append(p.get_next_position())
