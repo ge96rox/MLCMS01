@@ -125,7 +125,7 @@ class Pedestrian(Cell):
 
         row = self.current_row
         column = self.current_col
-        best_n = self.find_best_neighbor(util_map, row, column)
+        best_n = self.find_best_neighbor_v_h(util_map, row, column)
         self.next_row = best_n[0]
         self.next_col = best_n[1]
 
@@ -148,7 +148,7 @@ class Pedestrian(Cell):
             cells[self.find_position()].set_state(Cell.PEDESTRIAN)
 
     @staticmethod
-    def find_best_neighbor(m, r, c):
+    def find_best_neighbor_diag(m, r, c):
         # return the position of neighbor with smallest util around cell@(r,c) based on UtilMap m
         neighbors = []
         best_n = (r, c)
@@ -171,6 +171,27 @@ class Pedestrian(Cell):
         # print(best_n)
         return best_n
 
+    @staticmethod
+    def find_best_neighbor_v_h(m, r, c):
+        neighbors = []
+        best_n = (r, c)
+        min_u = np.inf
+
+        r_map, c_map = m.shape
+        left_col = max(0, c - 1)
+        right_col = min(c + 1, c_map - 1)
+
+        up_row = max(0, r - 1)
+        down_row = min(r + 1, r_map - 1)
+
+        for new_c in range(left_col, right_col + 1):
+            for new_r in range(up_row, down_row + 1):
+                if abs(new_r - r) != abs(new_c - c):
+                    if m[new_r, new_c] <= min_u:
+                        best_n = (new_r, new_c)
+                        min_u = m[new_r, new_c]
+
+        return best_n
 
 """
 
