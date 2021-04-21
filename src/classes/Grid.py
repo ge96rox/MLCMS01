@@ -11,9 +11,11 @@ from classes.Cell import *
 from classes.Util import *
 
 import matplotlib
+import random
 
 
 from util.helper import list_duplicates, indices_matches
+from classes.Strategy import find_best_neighbor_total, find_best_neighbor_v_h, find_best_neighbor_diag
 
 matplotlib.use('TkAgg')
 
@@ -63,6 +65,7 @@ class GridWindow:
         self.animation = False
         self.first_round = True
         self.time = 100
+        self.diff_speed = None
 
         self.grid = {}  # canvas grid image
         self.cells = {}  # cavas cells
@@ -178,14 +181,22 @@ class GridWindow:
         self.cell_width = self.width / self.cols
         self.cell_height = self.height / self.rows
         self.method = data['method']
+        self.diff_speed = data['diff_speed']
 
         return data
 
     def load_grid(self, data):
-
+        ped = None
         for row, col in data['pedestrians']:
+            if self.diff_speed:
+                r_value = random.randint(1, 2)
+                if r_value == 2:
+                    self.peds.append(Pedestrian(row, col, find_best_neighbor_total))
+                else:
+                    self.peds.append(Pedestrian(row, col, find_best_neighbor_v_h))
+            else:
+                self.peds.append(Pedestrian(row, col, find_best_neighbor_v_h))
             self.cells[row, col].set_state(Cell.PEDESTRIAN)
-            self.peds.append(Pedestrian(row, col))
 
         for row, col in data['target']:
             self.cells[row, col].set_state(Cell.TARGET)

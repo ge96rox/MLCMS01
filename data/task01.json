@@ -6,5 +6,6 @@
     "pedestrians": [ [2,2] ],
     "obstacles": [ ],
     "target": [ [4,2] ],
-    "method": "Euclidean"
+    "method": "Euclidean",
+    "diff_speed": false
 }
