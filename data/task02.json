@@ -1,0 +1,10 @@
+{
+    "rows": 50,
+    "cols": 50,
+    "width": 600,
+    "height": 600,
+    "pedestrians": [ [5,25] ],
+    "obstacles": [ ],
+    "target": [ [25,25] ],
+    "method": "Euclidean"
+}
