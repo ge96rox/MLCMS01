@@ -1,7 +1,7 @@
 # Created by longtaoliu at 19.04.21
 
 import numpy as np
-
+import classes.Fmm as fmm
 import matplotlib
 
 matplotlib.use('TkAgg')
@@ -49,6 +49,19 @@ class EuclideanUtil:
 
         # normalize the utils to interval [0,1]
         return utils
+
+
+class FmmUtil:
+
+    def compute_util_map(self, r, c, target, obstacle):
+        utils = np.full((r, c), np.inf)
+        t_row, t_col = target
+
+        f_i_map = np.full((r, c), 1)
+        for o in obstacle:
+            f_i_map[o.find_position()] = 0
+
+        return fmm.fmm_u_map_init(utils, f_i_map, t_row, t_col)
 
 
 class DijkstraUtil:

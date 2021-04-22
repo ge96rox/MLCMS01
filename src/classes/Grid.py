@@ -13,7 +13,6 @@ from classes.Util import *
 import matplotlib
 import random
 
-
 from util.helper import list_duplicates, indices_matches
 from classes.Strategy import find_best_neighbor_total, find_best_neighbor_v_h, find_best_neighbor_diag
 
@@ -76,6 +75,7 @@ class GridWindow:
 
         self.eu_util_map = None
         self.dij_util_map = None
+        self.fmm_util_map = None
         self.icost_map = None
         self.util_map = None
 
@@ -119,7 +119,7 @@ class GridWindow:
             for row in range(self.cols):
                 self.myCanvas.itemconfig(self.grid[row, column], fill='white')
                 self.cells[row, column].set_state(0)
-        
+
         self.peds = []
         self.reach_goal = 0
         self.b_load.config(state=NORMAL)
@@ -152,7 +152,7 @@ class GridWindow:
 
         # draw the cells
         self.draw_cells()
-        
+
         # STATIC FIELD ONLY NEED TO CALCULATE ONCE
         if self.method == "Euclidean":
             self.get_euclidean_util_map()
@@ -162,9 +162,13 @@ class GridWindow:
             self.get_dijkstra_util_map()
         elif self.method == "Dijkstra+Cost":
             self.get_dijkstra_util_map()
-            
+        if self.method == "Fmm":
+            self.get_fmm_util_map()
+        elif self.method == "Fmm+Cost":
+            self.get_fmm_util_map()
+
         self.b_next.config(state=NORMAL)
-       
+
     def open_read_data(self):
 
         self.input_file = filedialog.askopenfilename(filetypes=[("Json", '*.json'), ("All files", "*.*")])
@@ -255,12 +259,16 @@ class GridWindow:
 
             if self.method == "Euclidean":
                 self.util_map = self.eu_util_map
-            elif self.method == "Euclidean+Cost":   
-                self.util_map = self.icost_map + self.eu_util_map            
+            elif self.method == "Euclidean+Cost":
+                self.util_map = self.icost_map + self.eu_util_map
             if self.method == "Dijkstra":
                 self.util_map = self.dij_util_map
             elif self.method == "Dijkstra+Cost":
-                self.util_map = self.icost_map +self.dij_util_map
+                self.util_map = self.icost_map + self.dij_util_map
+            if self.method == "Fmm":
+                self.util_map = self.fmm_util_map
+            elif self.method == "Fmm+Cost":
+                self.util_map = self.icost_map + self.fmm_util_map
 
             p.set_next_position(self.util_map)
             next_pos.append(p.get_next_position())
@@ -339,6 +347,12 @@ class GridWindow:
                                                             self.t_cells[0].find_position(),
                                                             self.o_cells)
         # print(self.dij_util_map)
+
+    def get_fmm_util_map(self):
+        self.list_cells()
+        self.fmm_util_map = FmmUtil().compute_util_map(self.rows, self.cols,
+                                                       self.t_cells[0].find_position(),
+                                                       self.o_cells)
 
     def get_interaction_cost_map(self, pedestrian):
 
