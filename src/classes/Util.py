@@ -1,7 +1,7 @@
 # Created by longtaoliu at 19.04.21
 
 import numpy as np
-import classes.Fmm as fmm
+import classes.Solver as sol
 import matplotlib
 
 matplotlib.use('TkAgg')
@@ -61,78 +61,26 @@ class FmmUtil:
         for o in obstacle:
             f_i_map[o.find_position()] = 0
 
-        return fmm.fmm_u_map_init(utils, f_i_map, t_row, t_col)
+        return sol.fmm_u_map_init(utils, f_i_map, t_row, t_col)
 
 
 class DijkstraUtil:
-    def explore_node(self, r, c, queue, visited, o_list, utils):
-        cost = np.full((r, c), np.inf)
-        node = queue[0]
 
-        for i in range(max(0, node[0] - 1), min(r - 1, node[0] + 1) + 1):
-            for j in range(max(0, node[1] - 1), min(c - 1, node[1] + 1) + 1):
-                if (i == node[0] and j == node[1]) or ((i, j) in visited):
-                    continue
-                queue.append((i, j))
+    def compute_util_map(self, r, c, target, obstacle):
+        utils = np.full((r, c), np.inf)
+        t_row, t_col = target
 
-                if (i, j) in o_list:
-                    cost[i, j] = utils[node] + np.inf
-                elif abs(i - node[0]) == abs(j - node[1]):
-                    cost[i, j] = utils[node] + pow(2, 0.5)
-                else:
-                    cost[i, j] = utils[node] + 1
-                if cost[i, j] < utils[i, j]:
-                    utils[i, j] = cost[i, j]
+        f_i_map = np.full((r, c), 0).astype(float)
+        for o in obstacle:
+            f_i_map[o.find_position()] = np.inf
 
-        visited.append(node)
-        queue.remove(node)
-
-        return queue, visited, utils
-
-    def process_queue(self, queue, utils):
-        new_queue = []
-        for q in queue:
-            if q not in new_queue:
-                new_queue.append(q)
-        queue = new_queue
-
-        min_cost = np.inf
-        min_index = ()
-        for q in queue:
-            if utils[q] <= min_cost:
-                min_cost = utils[q]
-                min_index = q
-        if queue[0] != min_index:
-            queue.append(queue[0])
-            queue.remove(min_index)
-            queue[0] = min_index
-
-        return queue
+        return sol.dijkstra_u_map_init(utils, f_i_map, t_row, t_col)
 
     def normalize_utils(self, utils):
         utils = np.where(utils == np.inf, -np.inf, utils)
         utils = np.where(utils != -np.inf, np.round(utils / (np.max(utils) + 1), 4), np.inf)
         return utils
 
-    def compute_util_map(self, r, c, target, obstacle):
-        utils = np.full((r, c), np.inf)
-        utils[target] = 0
-
-        visited = []
-        queue = [target]
-        o_list = []
-
-        for o in obstacle:
-            o_list.append(o.find_position())
-
-        while queue:
-            queue, visited, utils = self.explore_node(r, c, queue, visited, o_list, utils)
-            if queue:
-                queue = self.process_queue(queue, utils)
-
-        utils = self.normalize_utils(utils)
-
-        return utils
 
 
 class InteractionCost:

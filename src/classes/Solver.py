@@ -14,6 +14,7 @@ class NarrowNode(object):
     def __lt__(self, other):
         return self.time < other.time
 
+
 def find_neighbor(m, r, c):
     n = set()
     r_map, c_map = m.shape
@@ -101,6 +102,55 @@ def fmm_u_map_init(u_map, f_i_map, t_row, t_col):
                 r, c = rc_neighbor
                 t_i = u_map[r, c]
                 t_hat_i = solve_eikonal(u_map, r, c, t_i, f_i_map[r][c])
+                if t_hat_i < t_i:
+                    t_i = t_hat_i
+                    u_map[r, c] = t_i
+
+                if rc_neighbor in unknown_set:
+                    narrow_set.add(rc_neighbor)
+                    heapq.heappush(narrow_mq, NarrowNode(t_i, rc_neighbor))
+                    unknown_set.remove(rc_neighbor)
+        set_to_op = set()
+        set_to_op.add((row_min, col_min))
+        narrow_set = narrow_set - set_to_op
+        frozen_set.union(set_to_op)
+    return u_map
+
+
+def solve_dijkstra(u_map, t_min, f_i):
+    if f_i == np.inf:
+        return np.inf
+    else:
+        return t_min + 1
+
+
+def dijkstra_u_map_init(u_map, f_i_map, t_row, t_col):
+    rows, cols = u_map.shape
+    unknown_set = set()
+    narrow_set = set()
+    frozen_set = set()
+    narrow_mq = []
+    for i in range(0, rows):
+        for j in range(0, cols):
+            if i != t_row or j != t_col:
+                unknown_set.add((i, j))
+                u_map[i, j] = np.inf
+            if i == t_row and j == t_col:
+                u_map[i, j] = 0
+                narrow_set.add((i, j))
+                heapq.heappush(narrow_mq, NarrowNode(0, (i, j)))
+    while len(narrow_set) != 0:
+        node = heapq.heappop(narrow_mq)
+        t_min = node.time
+        row_min, col_min = node.position
+        neighbor = find_neighbor(u_map, row_min, col_min)
+        for rc_neighbor in neighbor:
+            if not (rc_neighbor in frozen_set):
+                r, c = rc_neighbor
+                t_min = u_map[row_min, col_min]
+                t_i = u_map[r, c]
+                t_hat_i = solve_dijkstra(u_map, t_min, f_i_map[r][c])
+
                 if t_hat_i < t_i:
                     t_i = t_hat_i
                     u_map[r, c] = t_i
