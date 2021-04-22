@@ -1,8 +1,3 @@
-# Created by longtaoliu at 19.04.21
-# from classes.Grid import GridWindow
-import numpy as np
-
-
 class Cell:
     """
        Cell(row, col)

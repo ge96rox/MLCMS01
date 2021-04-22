@@ -346,7 +346,6 @@ class GridWindow:
         self.dij_util_map = DijkstraUtil().compute_util_map(self.rows, self.cols,
                                                             self.t_cells[0].find_position(),
                                                             self.o_cells)
-        # print(self.dij_util_map)
 
     def get_fmm_util_map(self):
         self.list_cells()

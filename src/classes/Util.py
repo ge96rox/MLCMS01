@@ -1,7 +1,7 @@
 # Created by longtaoliu at 19.04.21
 
 import numpy as np
-import classes.Solver as sol
+from classes.Solver import DijkstraSolver, FmmSolver
 import matplotlib
 
 matplotlib.use('TkAgg')
@@ -60,8 +60,8 @@ class FmmUtil:
         f_i_map = np.full((r, c), 1)
         for o in obstacle:
             f_i_map[o.find_position()] = 0
-
-        return sol.fmm_u_map_init(utils, f_i_map, t_row, t_col)
+        fmm_solver = FmmSolver(utils, f_i_map)
+        return fmm_solver.solve_process(t_row, t_col)
 
 
 class DijkstraUtil:
@@ -74,13 +74,8 @@ class DijkstraUtil:
         for o in obstacle:
             f_i_map[o.find_position()] = np.inf
 
-        return sol.dijkstra_u_map_init(utils, f_i_map, t_row, t_col)
-
-    def normalize_utils(self, utils):
-        utils = np.where(utils == np.inf, -np.inf, utils)
-        utils = np.where(utils != -np.inf, np.round(utils / (np.max(utils) + 1), 4), np.inf)
-        return utils
-
+        dijkstra_solver = DijkstraSolver(utils, f_i_map)
+        return dijkstra_solver.solve_process(t_row, t_col)
 
 
 class InteractionCost:
