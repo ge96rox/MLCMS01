@@ -20,6 +20,11 @@ class SolverTemplate:
         self.u_map = u_map
         self.f_i_map = f_i_map
 
+    def normalize_utils(self, utils):
+        utils = np.where(utils == np.inf, -np.inf, utils)
+        utils = np.where(utils != -np.inf, np.round(utils / (np.max(utils) + 1), 4), np.inf)
+        return utils
+
     def solve(self):
         pass
 
@@ -69,7 +74,8 @@ class SolverTemplate:
             set_to_op.add((row_min, col_min))
             narrow_set = narrow_set - set_to_op
             frozen_set.union(set_to_op)
-        return self.u_map
+
+        return self.normalize_utils(self.u_map)
 
 
 class FmmSolver(SolverTemplate):
