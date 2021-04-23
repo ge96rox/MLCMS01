@@ -282,8 +282,18 @@ class GridWindow:
                 p_to_stay.append(curr_pos[loser])
 
         # find peds whose next_position is occupied by peds who stay put
+        '''
         for i in indices_matches(next_pos, p_to_stay):
             p_to_stay.append(curr_pos[i])
+        '''
+        while True:
+            check = []
+            for i in indices_matches(next_pos, p_to_stay):
+                if curr_pos[i] not in p_to_stay:
+                    p_to_stay.append(curr_pos[i])
+                    check.append(i)
+            if not check:
+                break
 
         p_to_update = list(set(curr_pos) - set(p_to_stay))
 
@@ -303,6 +313,8 @@ class GridWindow:
                 p.update_peds(self.t_cells[0], self.cells)
                 if p.arrived:
                     self.reach_goal += 1
+            for p in self.peds:
+                p.rewrite_peds_pos(self.t_cells[0], self.cells)
             self.draw_cells()
             self.check_game_end()
             self.b_next.config(state=NORMAL)

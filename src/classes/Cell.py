@@ -132,15 +132,20 @@ class Pedestrian(Cell):
     def update_peds(self, target, cells):
 
         if (self.current_row, self.current_col) == target.find_position():
-            cells[self.find_position()].set_state(Cell.TARGET)
+            # cells[self.find_position()].set_state(Cell.TARGET)
+            pass
         elif self.get_next_position() == target.find_position():
             self.is_arrived()
             cells[self.find_position()].set_state(Cell.WALKOVER)
             self.set_position(self.get_next_position()[0], self.get_next_position()[1])
-            cells[self.find_position()].set_state(Cell.TARGET)
+            # cells[self.find_position()].set_state(Cell.TARGET)
         else:
             cells[self.find_position()].set_state(Cell.WALKOVER)
             self.set_position(self.get_next_position()[0], self.get_next_position()[1])
+            # cells[self.find_position()].set_state(Cell.PEDESTRIAN)
+
+    def rewrite_peds_pos(self, target, cells):
+        if (self.current_row, self.current_col) != target.find_position():
             cells[self.find_position()].set_state(Cell.PEDESTRIAN)
 
 
