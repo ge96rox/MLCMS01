@@ -38,7 +38,7 @@ def find_best_neighbor_v_h(m, r, c):
 
     for new_c in range(left_col, right_col + 1):
         for new_r in range(up_row, down_row + 1):
-            if abs(new_r - r) != abs(new_c - c):
+            if (abs(new_r - r) != abs(new_c - c)) or (new_r == r and new_c == c):
                 if m[new_r, new_c] <= min_u:
                     best_n = (new_r, new_c)
                     min_u = m[new_r, new_c]
