@@ -1,8 +1,8 @@
 {
     "rows": 50,
     "cols": 50,
-    "width": 600,
-    "height": 600,
+    "width": 500,
+    "height": 500,
     "pedestrians": [ [5,25] ],
     "obstacles": [ ],
     "target": [ [25,25] ],

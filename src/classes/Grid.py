@@ -65,6 +65,7 @@ class GridWindow:
         self.first_round = True
         self.time = 100
         self.diff_speed = None
+        self.open_count = 0
 
         self.grid = {}  # canvas grid image
         self.cells = {}  # cavas cells
@@ -114,17 +115,13 @@ class GridWindow:
 
     def clear_grid(self):
 
-        # clear the grid, set all cells to empty
-        for column in range(self.rows):
-            for row in range(self.cols):
-                self.myCanvas.itemconfig(self.grid[row, column], fill='white')
-                self.cells[row, column].set_state(0)
-
+        self.myCanvas.delete("all")
         self.peds = []
         self.reach_goal = 0
         self.b_load.config(state=NORMAL)
         self.b_run.config(state=DISABLED)
         self.timestep = 0
+        self.first_round = True
         self.round_finish = False
         self.label_text.set(' step')
 
@@ -136,7 +133,7 @@ class GridWindow:
         # json parser
         data = self.open_read_data()
 
-        if self.pre_run:
+        if self.pre_run or self.open_count > 0:
             self.pre_run = False
         else:
             self.myCanvas = Canvas(self.myFrame)
@@ -168,6 +165,7 @@ class GridWindow:
             self.get_fmm_util_map()
 
         self.b_next.config(state=NORMAL)
+        self.open_count += 1
 
     def open_read_data(self):
 
