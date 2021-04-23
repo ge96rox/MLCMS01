@@ -104,8 +104,8 @@ class GridWindow:
 
     def draw_grid(self):
 
-        for column in range(self.rows):
-            for row in range(self.cols):
+        for column in range(self.cols):
+            for row in range(self.rows):
                 x1 = column * self.cell_width + 4
                 y1 = row * self.cell_height + 4
                 x2 = x1 + self.cell_width
