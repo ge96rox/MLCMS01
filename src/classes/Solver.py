@@ -22,7 +22,7 @@ class SolverTemplate:
 
     def normalize_utils(self, utils):
         utils = np.where(utils == np.inf, -np.inf, utils)
-        utils = np.where(utils != -np.inf, np.round(utils / (np.max(utils) + 1), 4), np.inf)
+        utils = np.where(utils != -np.inf, np.round(utils / (np.max(utils) + 1), 7), np.inf)
         return utils
 
     def solve(self):
