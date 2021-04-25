@@ -98,7 +98,7 @@ class FmmSolver(SolverTemplate):
             t_hat_i = self.solve_n_dims(dim, min_queue, f_i)
             if dim == a - 1:
                 break
-            elif t_hat_i < min_queue[dim]:
+            elif t_hat_i < min_queue[dim + 1]:
                 break
         return t_hat_i
 
