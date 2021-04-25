@@ -341,27 +341,45 @@ class GridWindow:
                                                             self.o_cells)
 
         # plot the EUtilMap as density map
-        # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-        # ax1 = ax.pcolormesh(self.eu_util_map, vmin=0, vmax=1, cmap='Greens')
-        # label_list = np.arange(0, self.rows - 1, 1)
-        # label_list = np.append(label_list, self.rows - 1)
-        # ax.set_xticks(label_list)
-        # ax.set_yticks(label_list)
-        # ax.title.set_text('util function')
-        # fig.colorbar(ax1, ax=ax)
-        # fig.show()
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        ax1 = ax.pcolormesh(self.eu_util_map, vmin=0, vmax=1, cmap='Greens')
+        label_list = np.arange(0, self.rows - 1, 1)
+        label_list = np.append(label_list, self.rows - 1)
+        ax.set_xticks(label_list)
+        ax.set_yticks(label_list)
+        ax.title.set_text('util function')
+        fig.colorbar(ax1, ax=ax)
+        fig.show()
 
     def get_dijkstra_util_map(self):
         self.list_cells()
         self.dij_util_map = DijkstraUtil().compute_util_map(self.rows, self.cols,
                                                             self.t_cells[0].find_position(),
                                                             self.o_cells)
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        ax1 = ax.pcolormesh(self.dij_util_map, vmin=0, vmax=1, cmap='Greens')
+        label_list = np.arange(0, self.rows - 1, 1)
+        label_list = np.append(label_list, self.rows - 1)
+        ax.set_xticks(label_list)
+        ax.set_yticks(label_list)
+        ax.title.set_text('util function')
+        fig.colorbar(ax1, ax=ax)
+        fig.show()
 
     def get_fmm_util_map(self):
         self.list_cells()
         self.fmm_util_map = FmmUtil().compute_util_map(self.rows, self.cols,
                                                        self.t_cells[0].find_position(),
                                                        self.o_cells)
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        ax1 = ax.pcolormesh(self.fmm_util_map, vmin=0, vmax=1, cmap='Greens')
+        label_list = np.arange(0, self.rows - 1, 1)
+        label_list = np.append(label_list, self.rows - 1)
+        ax.set_xticks(label_list)
+        ax.set_yticks(label_list)
+        ax.title.set_text('util function')
+        fig.colorbar(ax1, ax=ax)
+        fig.show()
 
     def get_interaction_cost_map(self, pedestrian):
 

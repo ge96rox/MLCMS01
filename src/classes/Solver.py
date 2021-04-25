@@ -98,7 +98,7 @@ class FmmSolver(SolverTemplate):
             t_hat_i = self.solve_n_dims(dim, min_queue, f_i)
             if dim == a - 1:
                 break
-            elif t_hat_i < min_queue[dim + 1]:
+            elif t_hat_i < min_queue[dim]:
                 break
         return t_hat_i
 
@@ -108,8 +108,8 @@ class FmmSolver(SolverTemplate):
         copy_mq = copy.deepcopy(min_queue)
         if dim == 0:
             return heapq.heappop(copy_mq) + (1 / f_i)
-        sum_t = sum(copy_mq[:dim + 1])
-        sum_t2 = sum(list(map(lambda i: i ** 2, copy_mq))[:dim + 1])
+        sum_t = sum(copy_mq[:dim])
+        sum_t2 = sum(list(map(lambda i: i ** 2, copy_mq))[:dim])
         a = dim
         b = -2 * sum_t
         c = sum_t2 - (1 / f_i)
