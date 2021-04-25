@@ -108,9 +108,9 @@ class FmmSolver(SolverTemplate):
         copy_mq = copy.deepcopy(min_queue)
         if dim == 0:
             return heapq.heappop(copy_mq) + (1 / f_i)
-        sum_t = sum(copy_mq[:dim])
-        sum_t2 = sum(list(map(lambda i: i ** 2, copy_mq))[:dim])
-        a = dim
+        sum_t = sum(copy_mq[:dim + 1])
+        sum_t2 = sum(list(map(lambda i: i ** 2, copy_mq))[:dim + 1])
+        a = dim + 1
         b = -2 * sum_t
         c = sum_t2 - (1 / f_i)
         q = b ** 2 - 4 * a * c
