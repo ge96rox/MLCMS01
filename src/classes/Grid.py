@@ -13,7 +13,7 @@ import matplotlib
 import random
 
 from util.helper import list_duplicates, indices_matches
-from classes.Strategy import find_best_neighbor_total, find_best_neighbor_v_h, find_best_neighbor_diag
+from classes.Strategy import find_best_neighbor_total, find_best_neighbor_v_h, find_best_neighbor_total_v3
 
 matplotlib.use('TkAgg')
 
@@ -220,8 +220,10 @@ class GridWindow:
         ped = None
         for row, col in data['pedestrians']:
             if self.diff_speed:
-                r_value = random.randint(1, 2)
-                if r_value == 2:
+                r_value = random.randint(2, 3)
+                if r_value == 3:
+                    self.peds.append(Pedestrian(row, col, find_best_neighbor_total_v3))
+                elif r_value == 2:
                     self.peds.append(Pedestrian(row, col, find_best_neighbor_total))
                 else:
                     self.peds.append(Pedestrian(row, col, find_best_neighbor_v_h))
