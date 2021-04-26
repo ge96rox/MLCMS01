@@ -147,7 +147,7 @@ class GridWindow:
             self.pre_run = False
         else:
             self.myCanvas = Canvas(self.myFrame)
-            self.myCanvas.configure(width=self.cell_height * self.rows + 4, height=self.cell_width * self.cols + 4)
+            self.myCanvas.configure(height=self.cell_height * self.rows + 4, width=self.cell_width * self.cols + 4)
             self.myCanvas.pack(side=RIGHT)
 
         # draw the base grid with empty cells
@@ -245,8 +245,8 @@ class GridWindow:
         None
         """
 
-        for column in range(self.rows):
-            for row in range(self.cols):
+        for column in range(self.cols):
+            for row in range(self.rows):
                 if self.cells[row, column].get_state() == Cell.PEDESTRIAN:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='green')
                 elif self.cells[row, column].get_state() == Cell.TARGET:
@@ -274,8 +274,8 @@ class GridWindow:
         self.o_cells = []  # list of origin obstacle positions [NON-CHANGE]
         self.t_cells = []  # list of origin target positions [NON-CHANGE]
 
-        for column in range(self.rows):
-            for row in range(self.cols):
+        for column in range(self.cols):
+            for row in range(self.rows):
                 if self.cells[row, column].get_state() == Cell.TARGET:
                     self.t_cells.append(self.cells[row, column])
                 if self.cells[row, column].get_state() == Cell.OBSTACLE:
@@ -407,7 +407,7 @@ class GridWindow:
         self.list_cells()
 
         self.eu_util_map = EuclideanUtil().compute_util_map(self.rows, self.cols,
-                                                            self.t_cells[0],
+                                                            self.t_cells[0].find_position(),
                                                             self.o_cells)
 
         # plot the EUtilMap as density map
