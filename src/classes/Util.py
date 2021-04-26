@@ -29,10 +29,41 @@ class EuclideanUtil:
     """
 
     def compute_util(self, p, t):
-        # compute the euclidean distance
+        """
+        compute the euclidean distance
+        Parameters
+        ----------
+        p : int
+            cost of pedestrian in utility map
+        t :
+            cost of target in utility map
+        Returns
+        -------
+        None
+
+        """
+
         return np.linalg.norm(p - t)
 
     def compute_util_map(self, r, c, target, obstacle):
+        """
+        compute utility map
+        Parameters
+        ----------
+        r : int
+            row
+        c : int
+            col
+        target : Target
+            target object
+        obstacle : Obstacle
+            obtacle objects
+
+        Returns
+        -------
+        array, shape(rows, cols)
+        utility map
+        """
         # output the utils map
         utils = np.zeros((r, c))
         utils += np.inf
@@ -52,8 +83,28 @@ class EuclideanUtil:
 
 
 class FmmUtil:
-
+    """
+    A class present the Cost function by using Fast Marching Meahtod Utility
+    """
     def compute_util_map(self, r, c, target, obstacle):
+        """
+        compute utility map
+        Parameters
+        ----------
+        r : int
+            row
+        c : int
+            col
+        target : Target
+            target object
+        obstacle : Obstacle
+            obtacle objects
+
+        Returns
+        -------
+        array, shape(rows, cols)
+        utility map
+        """
         utils = np.full((r, c), np.inf)
         t_row, t_col = target
 
@@ -65,8 +116,28 @@ class FmmUtil:
 
 
 class DijkstraUtil:
-
+    """
+    A class present the Cost function by using Dijkstra Utility
+    """
     def compute_util_map(self, r, c, target, obstacle):
+        """
+        compute utility map
+        Parameters
+        ----------
+        r : int
+            row
+        c : int
+            col
+        target : Target
+            target object
+        obstacle : Obstacle
+            obtacle objects
+
+        Returns
+        -------
+        array, shape(rows, cols)
+        utility map
+        """
         utils = np.full((r, c), np.inf)
         t_row, t_col = target
 
@@ -80,22 +151,42 @@ class DijkstraUtil:
 
 class InteractionCost:
     """
-       CostFUtil()
        A class represent Cost Function that shows the interaction between pedestrians
-
-       Parameters
-       ----------
-
-       Attributes
-       ----------
-
     """
 
     def compute_cost(self, r):
+        """function for calculate interaction cost
+
+        Parameters
+        ----------
+        r : int
+            distance to pedestrian of neighborhood
+
+        Returns
+        -------
+        None
+        """
         self.r_max = 1
         return np.exp(1 / (np.power(r, 2) - np.power(self.r_max, 2))) if r < self.r_max else 0
 
     def compute_cost_map(self, r, c, pedestrian, other_peds):
+        """calculate the interaction cost map
+
+        Parameters
+        ----------
+        r : int
+            row
+        c : int
+            column
+        pedestrian : Pedestrians
+            pedestrian object
+        other_peds : Pedstrians
+            the rest pedestrian objects
+
+        Returns
+        -------
+
+        """
         # output the utils map
         costs = np.zeros((r, c))
 

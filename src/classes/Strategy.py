@@ -2,7 +2,24 @@ import numpy as np
 
 
 def find_best_neighbor_diag(m, r, c):
-    # return the position of neighbor with smallest util around cell@(r,c) based on UtilMap m
+    """
+    find the best neighbor using Moore Neighborhood definition, which contents the diagonal position
+
+    Parameters
+    ----------
+    m : array shape(rows, cols)
+        utility map
+    r : int
+        row of cell which need to find the best neighbor
+    c : int
+        col of cell which need to find the best neighbor
+
+    Returns
+    -------
+    tuple:
+        the position of neighbor with smallest util around cell@(r,c) based on UtilMap m
+    """
+
     neighbors = []
     best_n = (r, c)
     min_u = np.inf
@@ -19,13 +36,28 @@ def find_best_neighbor_diag(m, r, c):
                     if m[new_r, new_c] <= min_u:
                         best_n = (new_r, new_c)
                         min_u = m[new_r, new_c]
-
-    # print(neighbors)
-    # print(best_n)
     return best_n
 
 
 def find_best_neighbor_v_h(m, r, c):
+    """
+    find the best neighbor using Von Neumann neighborhood definition, which contents only vertically
+    and horizontally position
+
+    Parameters
+    ----------
+    m : array shape(rows, cols)
+        utility map
+    r : int
+        row of cell which need to find the best neighbor
+    c : int
+        col of cell which need to find the best neighbor
+
+    Returns
+    -------
+    tuple:
+        the position of neighbor with smallest util around cell@(r,c) based on UtilMap m
+    """
     best_n = (r, c)
     min_u = np.inf
 
@@ -47,6 +79,23 @@ def find_best_neighbor_v_h(m, r, c):
 
 
 def find_best_neighbor_total(m, r, c):
+    """
+    find the best neighbor in a timestep for 2x speed pedestrian, which search in a wide neighbors
+
+    Parameters
+    ----------
+    m : array shape(rows, cols)
+        utility map
+    r : int
+        row of cell which need to find the best neighbor
+    c : int
+        col of cell which need to find the best neighbor
+
+    Returns
+    -------
+    tuple:
+        the position of neighbor with smallest util around cell@(r,c) based on UtilMap m
+    """
     best_n = (r, c)
     min_u = np.inf
 
@@ -74,4 +123,54 @@ def find_best_neighbor_total(m, r, c):
         if 0 <= new_c <= c_map and m[r, new_c] <= min_u:
             best_n = (r, new_c)
             min_u = m[r, new_c]
+    return best_n
+
+
+def find_best_neighbor_total_v3(m, r, c):
+    """
+    find the best neighbor in a timestep for 3x speed pedestrian, which search in a wide neighbors
+
+    Parameters
+    ----------
+    m : array shape(rows, cols)
+        utility map
+    r : int
+        row of cell which need to find the best neighbor
+    c : int
+        col of cell which need to find the best neighbor
+
+    Returns
+    -------
+    tuple:
+        the position of neighbor with smallest util around cell@(r,c) based on UtilMap m
+    """
+    best_n = (r, c)
+    min_u = np.inf
+
+    r_map, c_map = m.shape
+
+    for new_c in range(c - 2, c + 2 + 1):
+        if c - 2 < 0 or c + 2 > c_map:
+            continue
+        for new_r in range(r - 2, r + 2 + 1):
+            if r - 2 < 0 or r + 2 > r_map:
+                continue
+            if (abs(new_r - r) == abs(new_c - c)) and (abs(new_r - r) == 2):
+                continue
+            if m[new_r, new_c] <= min_u:
+                best_n = (new_r, new_c)
+                min_u = m[new_r, new_c]
+
+    for i in [-3, 3]:
+        new_r = i + r
+        if 0 <= i + r <= r_map and m[new_r, c] <= min_u:
+            best_n = (new_r, c)
+            min_u = m[new_r, c]
+
+    for j in [-3, 3]:
+        new_c = j + c
+        if 0 <= new_c <= c_map and m[r, new_c] <= min_u:
+            best_n = (r, new_c)
+            min_u = m[r, new_c]
+
     return best_n

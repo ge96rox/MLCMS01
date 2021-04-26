@@ -5,7 +5,6 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 import json as js
-import random
 
 from classes.Cell import *
 from classes.Util import *
@@ -14,7 +13,7 @@ import matplotlib
 import random
 
 from util.helper import list_duplicates, indices_matches
-from classes.Strategy import find_best_neighbor_total, find_best_neighbor_v_h, find_best_neighbor_diag
+from classes.Strategy import find_best_neighbor_total, find_best_neighbor_v_h, find_best_neighbor_total_v3
 
 matplotlib.use('TkAgg')
 
@@ -37,12 +36,6 @@ class GridWindow:
 
        height : int
            The height of tkinter canvas
-
-
-
-       Attributes
-       ----------
-
 
     """
 
@@ -103,20 +96,29 @@ class GridWindow:
         self.label.pack(side=TOP, padx=2, pady=2)
 
     def draw_grid(self):
-        
+        """
+        draw the grids in the canvas
+
+        Returns
+        -------
+        None
+        """
         for column in range(self.cols):
             for row in range(self.rows):
-                
                 x1 = column * self.cell_width + 4
                 y1 = row * self.cell_height + 4
                 x2 = x1 + self.cell_width
                 y2 = y1 + self.cell_height
                 self.grid[row, column] = self.myCanvas.create_rectangle(x1, y1, x2, y2, fill="white")
                 self.cells[row, column] = Cell(row, column)
-         
 
     def clear_grid(self):
-
+        """
+        clear the grids and reset all values
+        Returns
+        -------
+        None
+        """
         self.myCanvas.delete("all")
         self.peds = []
         self.reach_goal = 0
@@ -128,7 +130,13 @@ class GridWindow:
         self.label_text.set(' step')
 
     def init_setup(self):
+        """initial steps when click the load button
 
+        Returns
+        -------
+        None
+
+        """
         # Open json file and read the file id, setting the cells
         self.b_load.config(state=DISABLED)
 
@@ -170,7 +178,14 @@ class GridWindow:
         self.open_count += 1
 
     def open_read_data(self):
+        """open and read json data
 
+        Returns
+        -------
+        dict:
+            json data
+
+        """
         self.input_file = filedialog.askopenfilename(filetypes=[("Json", '*.json'), ("All files", "*.*")])
         if not self.input_file:
             return
@@ -190,11 +205,25 @@ class GridWindow:
         return data
 
     def load_grid(self, data):
+        """get list of pedestirians and set all cells' states
+
+        Parameters
+        ----------
+        data : dict
+            json data
+
+        Returns
+        -------
+        None
+
+        """
         ped = None
         for row, col in data['pedestrians']:
             if self.diff_speed:
-                r_value = random.randint(1, 2)
-                if r_value == 2:
+                r_value = random.randint(2, 3)
+                if r_value == 3:
+                    self.peds.append(Pedestrian(row, col, find_best_neighbor_total_v3))
+                elif r_value == 2:
                     self.peds.append(Pedestrian(row, col, find_best_neighbor_total))
                 else:
                     self.peds.append(Pedestrian(row, col, find_best_neighbor_v_h))
@@ -209,10 +238,15 @@ class GridWindow:
             self.cells[row, col].set_state(Cell.OBSTACLE)
 
     def draw_cells(self):
+        """draw the cells (Pedestrians, Obstacle, Target) on the grid
 
-        # draw the cells (Pedestrians, Obstacle, Target) on the grid
-        for column in range(self.cols):
-            for row in range(self.rows):
+        Returns
+        -------
+        None
+        """
+
+        for column in range(self.rows):
+            for row in range(self.cols):
                 if self.cells[row, column].get_state() == Cell.PEDESTRIAN:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='green')
                 elif self.cells[row, column].get_state() == Cell.TARGET:
@@ -229,23 +263,33 @@ class GridWindow:
         self.label_text.set('{} step'.format(self.timestep))
 
     def list_cells(self):
-        # list all cells according to their type
+        """list all cells according to their type
 
-        # self.p_cells = [] # list of origin pedestrian positions [NON-CHANGE]
+        Returns
+        -------
+        None
+
+        """
+
         self.o_cells = []  # list of origin obstacle positions [NON-CHANGE]
         self.t_cells = []  # list of origin target positions [NON-CHANGE]
 
-        for column in range(self.cols):
-            for row in range(self.rows):
-
-                # if self.cells[row, column].get_state() == 1:
-                # self.p_cells.append(self.cells[row, column])
+        for column in range(self.rows):
+            for row in range(self.cols):
                 if self.cells[row, column].get_state() == Cell.TARGET:
                     self.t_cells.append(self.cells[row, column])
                 if self.cells[row, column].get_state() == Cell.OBSTACLE:
                     self.o_cells.append(self.cells[row, column])
 
     def handle_conflict(self):
+        """function to handle problem if two pedestrians choose the same next position
+
+        Returns
+        -------
+        list:
+            list of pedestrians chosen to update
+
+        """
         p_to_update = []
         p_to_stay = []
         curr_pos = []
@@ -300,13 +344,18 @@ class GridWindow:
         return p_to_update
 
     def update_cells(self):
-        # update the Pedestrians position per time step
+        """update the Pedestrians position per time step
+
+        Returns
+        -------
+        None
+
+        """
+
         if not self.round_finish:
             self.b_next.config(state=DISABLED)
 
             p_to_update = self.handle_conflict()
-
-            # print(p_to_update)
 
             gen = (p for p in self.peds if p.find_position() in p_to_update)
             for p in gen:
@@ -320,6 +369,12 @@ class GridWindow:
             self.b_next.config(state=NORMAL)
 
     def check_game_end(self):
+        """ check when all pedestrians reach the goal
+
+        Returns
+        -------
+
+        """
         if self.reach_goal == len(self.peds):
             messagebox.showinfo(title='STOP', message='ALL GOAL')
             self.pre_run = True
@@ -330,66 +385,78 @@ class GridWindow:
             self.myFrame.after(self.time, self.update_cells)
 
     def animate(self):
+        """
+        run to update position in canvas automatically
+
+        Returns
+        -------
+        None
+
+        """
         self.animation = True
         self.update_cells()
 
     def get_euclidean_util_map(self):
-        # compute the EuclideanDistance UtilMap
+        """compute the EuclideanDistance UtilMap
+
+        Returns
+        -------
+        None
+
+        """
         self.list_cells()
-        # print(self.t_cells)
-        
 
         self.eu_util_map = EuclideanUtil().compute_util_map(self.rows, self.cols,
-                                                            self.t_cells[0].find_position(),
+                                                            self.t_cells[0],
                                                             self.o_cells)
 
         # plot the EUtilMap as density map
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-        ax1 = ax.pcolormesh(self.eu_util_map, vmin=0, vmax=1, cmap='Greens')
-        label_list = np.arange(0, self.rows - 1, 1)
-        label_list = np.append(label_list, self.rows - 1)
-        ax.set_xticks(label_list)
-        ax.set_yticks(label_list)
-        ax.title.set_text('util function')
-        fig.colorbar(ax1, ax=ax)
-        fig.show()
+        # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        # ax1 = ax.pcolormesh(self.eu_util_map, vmin=0, vmax=1, cmap='Greens')
+        # label_list = np.arange(0, self.rows - 1, 1)
+        # label_list = np.append(label_list, self.rows - 1)
+        # ax.set_xticks(label_list)
+        # ax.set_yticks(label_list)
+        # ax.title.set_text('util function')
+        # fig.colorbar(ax1, ax=ax)
+        # fig.show()
 
     def get_dijkstra_util_map(self):
+        """compute the UtilMap based on dijkstra algorithms
+
+        Returns
+        -------
+        None
+
+        """
         self.list_cells()
         self.dij_util_map = DijkstraUtil().compute_util_map(self.rows, self.cols,
                                                             self.t_cells[0].find_position(),
                                                             self.o_cells)
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-        ax1 = ax.pcolormesh(self.dij_util_map, vmin=0, vmax=1, cmap='Greens')
-        label_list = np.arange(0, self.rows - 1, 1)
-        label_list = np.append(label_list, self.rows - 1)
-        ax.set_xticks(label_list)
-        ax.set_yticks(label_list)
-        ax.title.set_text('util function')
-        fig.colorbar(ax1, ax=ax)
-        fig.show()
 
     def get_fmm_util_map(self):
+        """compute the UtilMap based on Fmm algorithms
+
+        Returns
+        -------
+        None
+
+        """
         self.list_cells()
         self.fmm_util_map = FmmUtil().compute_util_map(self.rows, self.cols,
                                                        self.t_cells[0].find_position(),
                                                        self.o_cells)
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-        ax1 = ax.pcolormesh(self.fmm_util_map, vmin=0, vmax=1, cmap='Greens')
-        label_list = np.arange(0, self.rows - 1, 1)
-        label_list = np.append(label_list, self.rows - 1)
-        ax.set_xticks(label_list)
-        ax.set_yticks(label_list)
-        ax.title.set_text('util function')
-        fig.colorbar(ax1, ax=ax)
-        fig.show()
 
     def get_interaction_cost_map(self, pedestrian):
+        """compute the interaction map
 
+        Returns
+        -------
+        None
+
+        """
         other_peds = []
         gen = (p for p in self.peds if p.arrived == 0)
         for p in gen:
             if p != pedestrian: other_peds.append(p)
         self.icost_map = InteractionCost().compute_cost_map(self.rows, self.cols, pedestrian, other_peds)
-
-        # print(self.icost_map)
