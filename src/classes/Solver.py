@@ -302,9 +302,9 @@ class FmmSolver(SolverTemplate):
 
         """
         if dim == 1:
-            return min(u_map[row, max(0, col - 1)], u_map[row, min(len(u_map[1]) - 1, col + 1)])
+            return min(u_map[row, max(0, col - 1)], u_map[row, min(len(u_map[0]) - 1, col + 1)])
         else:
-            return min(u_map[max(0, row - 1), col], u_map[min(len(u_map[0]) - 1, row + 1), col])
+            return min(u_map[max(0, row - 1), col], u_map[min(len(u_map) - 1, row + 1), col])
 
     def solve(self, rc_neighbor, row_min, col_min):
         """
