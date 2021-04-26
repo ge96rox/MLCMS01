@@ -39,7 +39,7 @@ class EuclideanUtil:
 
         for i in range(r):
             for j in range(c):
-                utils[i, j] = self.compute_util(np.array([i, j]), np.array(target.find_position()))
+                utils[i, j] = self.compute_util(np.array([i, j]), np.array(target))
                 # print('('+str(i)+','+str(j)+')'+str(utils[i, j]))
 
         utils = np.round(utils / (np.max(utils) + 1), 4)

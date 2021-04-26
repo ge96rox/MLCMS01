@@ -103,15 +103,17 @@ class GridWindow:
         self.label.pack(side=TOP, padx=2, pady=2)
 
     def draw_grid(self):
-
+        
         for column in range(self.cols):
             for row in range(self.rows):
+                
                 x1 = column * self.cell_width + 4
                 y1 = row * self.cell_height + 4
                 x2 = x1 + self.cell_width
                 y2 = y1 + self.cell_height
                 self.grid[row, column] = self.myCanvas.create_rectangle(x1, y1, x2, y2, fill="white")
                 self.cells[row, column] = Cell(row, column)
+         
 
     def clear_grid(self):
 
@@ -209,8 +211,8 @@ class GridWindow:
     def draw_cells(self):
 
         # draw the cells (Pedestrians, Obstacle, Target) on the grid
-        for column in range(self.rows):
-            for row in range(self.cols):
+        for column in range(self.cols):
+            for row in range(self.rows):
                 if self.cells[row, column].get_state() == Cell.PEDESTRIAN:
                     self.myCanvas.itemconfig(self.grid[row, column], fill='green')
                 elif self.cells[row, column].get_state() == Cell.TARGET:
@@ -233,8 +235,8 @@ class GridWindow:
         self.o_cells = []  # list of origin obstacle positions [NON-CHANGE]
         self.t_cells = []  # list of origin target positions [NON-CHANGE]
 
-        for column in range(self.rows):
-            for row in range(self.cols):
+        for column in range(self.cols):
+            for row in range(self.rows):
 
                 # if self.cells[row, column].get_state() == 1:
                 # self.p_cells.append(self.cells[row, column])
@@ -334,10 +336,11 @@ class GridWindow:
     def get_euclidean_util_map(self):
         # compute the EuclideanDistance UtilMap
         self.list_cells()
-        # print(self.t_cells[0].find_position())
+        # print(self.t_cells)
+        
 
         self.eu_util_map = EuclideanUtil().compute_util_map(self.rows, self.cols,
-                                                            self.t_cells[0],
+                                                            self.t_cells[0].find_position(),
                                                             self.o_cells)
 
         # plot the EUtilMap as density map
