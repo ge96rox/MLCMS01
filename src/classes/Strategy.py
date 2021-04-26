@@ -114,13 +114,13 @@ def find_best_neighbor_total(m, r, c):
 
     for i in [-2, 2]:
         new_r = i + r
-        if 0 <= i + r <= r_map and m[new_r, c] <= min_u:
+        if 0 <= i + r < r_map and m[new_r, c] <= min_u:
             best_n = (new_r, c)
             min_u = m[new_r, c]
 
     for j in [-2, 2]:
         new_c = j + c
-        if 0 <= new_c <= c_map and m[r, new_c] <= min_u:
+        if 0 <= new_c < c_map and m[r, new_c] <= min_u:
             best_n = (r, new_c)
             min_u = m[r, new_c]
     return best_n
@@ -150,7 +150,7 @@ def find_best_neighbor_total_v3(m, r, c):
     r_map, c_map = m.shape
 
     for new_c in range(c - 2, c + 2 + 1):
-        if c - 2 < 0 or c + 2 > c_map:
+        if c - 2 < 0 or c + 2 >= c_map:
             continue
         for new_r in range(r - 2, r + 2 + 1):
             if r - 2 < 0 or r + 2 > r_map:
@@ -163,13 +163,13 @@ def find_best_neighbor_total_v3(m, r, c):
 
     for i in [-3, 3]:
         new_r = i + r
-        if 0 <= i + r <= r_map and m[new_r, c] <= min_u:
+        if 0 <= i + r < r_map and m[new_r, c] <= min_u:
             best_n = (new_r, c)
             min_u = m[new_r, c]
 
     for j in [-3, 3]:
         new_c = j + c
-        if 0 <= new_c <= c_map and m[r, new_c] <= min_u:
+        if 0 <= new_c < c_map and m[r, new_c] <= min_u:
             best_n = (r, new_c)
             min_u = m[r, new_c]
 
