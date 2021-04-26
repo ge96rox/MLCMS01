@@ -80,7 +80,7 @@ def find_best_neighbor_v_h(m, r, c):
 
 def find_best_neighbor_total(m, r, c):
     """
-    find the best neighbor in a timestep for higher speed pedestrian, which search in a wide neighbors
+    find the best neighbor in a timestep for 2x speed pedestrian, which search in a wide neighbors
 
     Parameters
     ----------
@@ -127,6 +127,23 @@ def find_best_neighbor_total(m, r, c):
 
 
 def find_best_neighbor_total_v3(m, r, c):
+    """
+    find the best neighbor in a timestep for 3x speed pedestrian, which search in a wide neighbors
+
+    Parameters
+    ----------
+    m : array shape(rows, cols)
+        utility map
+    r : int
+        row of cell which need to find the best neighbor
+    c : int
+        col of cell which need to find the best neighbor
+
+    Returns
+    -------
+    tuple:
+        the position of neighbor with smallest util around cell@(r,c) based on UtilMap m
+    """
     best_n = (r, c)
     min_u = np.inf
 
